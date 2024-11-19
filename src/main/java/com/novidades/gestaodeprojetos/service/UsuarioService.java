@@ -1,20 +1,27 @@
 package com.novidades.gestaodeprojetos.service;
 
+import java.util.Collections;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.novidades.gestaodeprojetos.model.Usuario;
 import com.novidades.gestaodeprojetos.repository.UsuarioRepository;
 import com.novidades.gestaodeprojetos.security.JWTService;
+import com.novidades.gestaodeprojetos.view.model.usuario.LoginResponse;
 
 @Service
 public class UsuarioService {
+	
+	private static final String headerPrefix = "Bearer ";
 	
 	@Autowired
 	private UsuarioRepository usuarioRepository;
@@ -53,6 +60,22 @@ public class UsuarioService {
 		usuario.setSenha(senha);
 		
 		return usuarioRepository.save(usuario);
+	}
+	
+	public LoginResponse logar(String email, String senha) {
+		
+		Authentication authentication = authenticationManager.authenticate(
+			new UsernamePasswordAuthenticationToken(email, senha, Collections.emptyList())
+		);
+		
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		
+		String token = headerPrefix + jwtService.gerarToken(authentication);
+		
+		Usuario usuario = usuarioRepository.findByEmail(email).get();
+		
+		return new LoginResponse(token, usuario);
+		
 	}
 	
 }
