@@ -38,38 +38,25 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter{
 		Optional<Long> id = jwtService.obterIdDoUsuario(token);
 		
 		// Se não achou o id, é porque o usuário não mandou o token correto.
-		if(!id.isPresent()) {
-			// Retorna resposta 401 caso o token seja inválido
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			response.getWriter().write("Token inválido ou ausente!");
-			return;
+		if(id.isPresent()) {
+		
+			// Pego o usuario dono do token pelo seu id.
+			UserDetails usuario = customUserDetailsService.obterUsuarioPorId(id.get());
+			
+			// Neste trecho verificamos se o usuário está autenticado ou não.
+			// Neste trecho tambem poderia ser validado as permissões -> usuario.getAuthorities()
+			UsernamePasswordAuthenticationToken autenticacao = new UsernamePasswordAuthenticationToken(usuario, null, Collections.emptyList());
+			
+			// Mudando a autenticação para a própria requisição - Adiciona os detalhes da requisição
+			autenticacao.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			
+			// Repasso a autenticação para o contexto do security.
+			// A partir de agora o spring toma conta de tudo para mim :D
+			SecurityContextHolder.getContext().setAuthentication(autenticacao);
 		}
-		
-		// Pego o usuario dono do token pelo seu id.
-		UserDetails usuario = customUserDetailsService.obterUsuarioPorId(id.get());
-		
-		// Se o usuário não for encontrado
-		if (usuario == null) {
-			// Retorna resposta 401
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			response.getWriter().write("Usuário não encontrado!");
-			return;
-		}
-		
-		// Neste trecho verificamos se o usuário está autenticado ou não.
-		// Neste trecho tambem poderia ser validado as permissões -> usuario.getAuthorities()
-		UsernamePasswordAuthenticationToken autenticacao = new UsernamePasswordAuthenticationToken(usuario, null, Collections.emptyList());
-		
-		// Mudando a autenticação para a própria requisição - Adiciona os detalhes da requisição
-		autenticacao.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-		
-		// Repasso a autenticação para o contexto do security.
-		// A partir de agora o spring toma conta de tudo para mim :D
-		SecurityContextHolder.getContext().setAuthentication(autenticacao);
 		
 		// Passa a requisição para o próximo filtro
 		filterChain.doFilter(request, response);
-		
 	}
 	
 	private String obterToken(HttpServletRequest request) {
