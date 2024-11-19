@@ -12,6 +12,8 @@ import javax.persistence.SequenceGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -55,36 +57,43 @@ public class Usuario implements UserDetails{
 	
 	// Daqui para baixo é implementação de UserDetails
 	@Override
+	@JsonIgnore
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return null;
 	}
 
 	@Override
+	@JsonIgnore
 	public String getPassword() {
 		return senha;
 	}
 
 	@Override
+	@JsonIgnore
 	public String getUsername() {
 		return email;
 	}
 	
 	@Override
+	@JsonIgnore
 	public boolean isAccountNonExpired() {
 		return true;
 	}
 	
 	@Override
+	@JsonIgnore
 	public boolean isAccountNonLocked() {
 		return true;
 	}
 	
 	@Override
+	@JsonIgnore
 	public boolean isCredentialsNonExpired() {
 		return true;
 	}
 	
 	@Override
+	@JsonIgnore
 	public boolean isEnabled() {
 		return true;
 	}
